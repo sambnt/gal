@@ -9,4 +9,5 @@ data Event = EventQuit
            | EventMouseMotion SDL.MouseMotionEventData
            | EventMouseWheel SDL.MouseWheelEventData
            | EventTextInput SDL.TextInputEventData
+           | EventWindowResize SDL.WindowSizeChangedEventData
            deriving (Eq, Show)

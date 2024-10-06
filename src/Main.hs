@@ -24,7 +24,8 @@ main = do
       let loop f = f >> loop f
       loop $ do
         withWindowEvents win $ \evs -> do
-          print evs
+          when (not $ null evs) $
+            print evs
           forM_ evs processEvent
           threadDelay 10000
 

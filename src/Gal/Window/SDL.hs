@@ -68,6 +68,8 @@ pushEvent q sdlEvent = case sdlEvent of
     queue q $ EventMouseWheel mouseWhlEventData
   SDL.TextInputEvent textEventData ->
     queue q $ EventTextInput textEventData
+  SDL.WindowSizeChangedEvent resizeEventData ->
+    queue q $ EventWindowResize resizeEventData
   _ ->
     pure ()
 

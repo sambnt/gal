@@ -38,10 +38,11 @@ withSDLWindow width height title f = do
          , SDL.windowHighDPI     = True
          }
 
-   bracket
-     (SDL.createWindow title sdlWindowCfg)
-     SDL.destroyWindow
-     (\w -> f $ WindowSDL w eventQue)
+   withSDL $
+     bracket
+       (SDL.createWindow title sdlWindowCfg)
+       SDL.destroyWindow
+       (\w -> f $ WindowSDL w eventQue)
 
 
 withWindowEvents :: WindowSDL -> ([Event] -> IO r) -> IO r

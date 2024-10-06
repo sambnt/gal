@@ -16,18 +16,17 @@ import System.Exit (exitSuccess)
 
 main :: IO ()
 main = do
-  withSDL $ do
-    let
-      initialWidth = 800
-      initialHeight = 600
-    withSDLWindow initialWidth initialHeight "gal" $ \win -> do
-      let loop f = f >> loop f
-      loop $ do
-        withWindowEvents win $ \evs -> do
-          when (not $ null evs) $
-            print evs
-          forM_ evs processEvent
-          threadDelay 10000
+  let
+    initialWidth = 800
+    initialHeight = 600
+  withSDLWindow initialWidth initialHeight "gal" $ \win -> do
+    let loop f = f >> loop f
+    loop $ do
+      withWindowEvents win $ \evs -> do
+        when (not $ null evs) $
+          print evs
+        forM_ evs processEvent
+        threadDelay 10000
 
 processEvent EventQuit = exitSuccess
 processEvent _ = pure ()

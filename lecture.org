@@ -1,0 +1,10 @@
+
+main s0 =
+  init
+    loop s0
+
+loop s0 =
+  evs <- getEvents
+  s1 <- forM_ evs processEvent s0
+  render s1
+  loop s1

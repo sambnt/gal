@@ -1,9 +1,7 @@
 module Gal.Game where
 
-import qualified SDL
 import Foreign.C (CInt)
-import Data.Foldable (foldl')
-import qualified Debug.Trace as Debug
+import Data.Function ((&))
 
 data Player = Player { playerX :: CInt
                      , playerY :: CInt
@@ -32,7 +30,11 @@ data GameEvent = PlayerMoved (CInt, CInt)
 processEvent :: GameEvent -> Game -> (Game, [GameEvent])
 processEvent (PlayerMoved (x, y)) game = (movePlayer x y game, coinsStolen game)
 processEvent (CoinStolen c) game       = (stealCoin c game, [])
-processEvent Restart _game             = (initialGameState, [])
+-- On restart, keep the player at the mouse position.
+processEvent Restart game              = (initialGameState
+                                          & movePlayer (playerX $ player game)
+                                                       (playerY $ player game)
+                                         , [])
 
 processEvents :: [GameEvent] -> Game -> (Game, [GameEvent])
 processEvents evs game =
@@ -60,6 +62,8 @@ isTouching :: Player -> Coin -> Bool
 isTouching p c =
   playerX p + playerWidth p > coinX c
   && playerY p + playerHeight p > coinY c
+  && coinX c + coinWidth c > playerX p
+  && coinY c + coinHeight c > playerY p
 
 initialGameState :: Game
 initialGameState =

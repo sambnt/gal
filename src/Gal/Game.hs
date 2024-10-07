@@ -2,30 +2,7 @@ module Gal.Game where
 
 import Foreign.C (CInt)
 import Data.Function ((&))
-
-data Player = Player { playerX :: CInt
-                     , playerY :: CInt
-                     , playerWidth :: CInt
-                     , playerHeight :: CInt
-                     }
-  deriving (Eq, Ord, Show)
-
-data Coin = Coin { coinX :: CInt
-                 , coinY :: CInt
-                 , coinWidth :: CInt
-                 , coinHeight :: CInt
-                 }
-  deriving (Eq, Ord, Show)
-
-data Game = Game { player :: Player
-                 , coins :: [Coin]
-                 }
-  deriving (Eq, Ord, Show)
-
-data GameEvent = PlayerMoved (CInt, CInt)
-               | CoinStolen Coin
-               | Restart
-  deriving (Eq, Ord, Show)
+import Gal.Game.Types (GameEvent (PlayerMoved, CoinStolen, Restart), Game (Game), player, playerX, playerY, Coin (Coin), coins, Player (Player), playerWidth, coinX, coinY, playerHeight, coinWidth, coinHeight)
 
 processEvent :: GameEvent -> Game -> (Game, [GameEvent])
 processEvent (PlayerMoved (x, y)) game = (movePlayer x y game, coinsStolen game)

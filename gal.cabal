@@ -65,7 +65,10 @@ library
                     Gal.Window.SDL
                     Gal.Render
                     Gal.Game
+                    Gal.Game.Types
                     Gal.Texture
+                    Gal.Time
+                    Gal.Input
 
 executable gal
     import:           project-config

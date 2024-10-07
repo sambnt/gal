@@ -21,7 +21,10 @@ import qualified Control.Concurrent.STM as STM
 import Data.Ratio ((%))
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import Foreign.C (CInt)
-import Gal.Game (Game, initialGameState, GameEvent(PlayerMoved, CoinStolen, Restart))
+import Gal.Game (initialGameState)
+import Gal.Game.Types (Game, GameEvent(PlayerMoved, CoinStolen, Restart))
+import Gal.Time (mkTime, getDeltaTime)
+import Gal.Input (translateGameEvents)
 import qualified Gal.Game as Game
 
 data State = State { stateGame :: Game
@@ -42,45 +45,29 @@ main = do
     withRenderer win $ \ren -> do
       textureAtlas <- loadTextureAtlas ren
 
-      time <- STM.newTVarIO =<< getCurrentTime
+      time <- mkTime
 
-      let
-        loop :: State -> (State -> IO State) -> IO State
-        loop s0 f = do
-            s1 <- f s0
-            loop s1 f
       void $ loop initialState $ \s -> do
         withWindowEvents win $ \evs -> do
-          when (not $ null evs) $
-            print evs
-          t1 <- getCurrentTime
-          dt <- STM.atomically $ do
-            t0 <- STM.readTVar time
-            STM.writeTVar time t1
-            pure $ realToFrac (diffUTCTime t1 t0)
 
-          let oldGameEvents = stateUnhandledEvents s
-          newGameEvents <- mconcat <$> traverse translateGameEvents evs
-          let evs = newGameEvents <> oldGameEvents
-          let (newGameState, newGameEvents) =
-                Game.processEvents evs (stateGame s)
+          dt <- getDeltaTime time
 
-          let drawCalls = generateDrawCalls textureAtlas newGameState
+          let mEvs = mconcat <$> traverse translateGameEvents evs
+          newGameEvents <- maybe exitSuccess pure mEvs
+          let
+            oldGameEvents = stateUnhandledEvents s
+            evsToProcess = newGameEvents <> oldGameEvents
+            (nextGameState, nextGameEvents) =
+              Game.processEvents evsToProcess (stateGame s)
+
+          let drawCalls = generateDrawCalls textureAtlas nextGameState
           executeDrawCalls ren drawCalls
 
-          pure $ State { stateGame = newGameState
-                       , stateUnhandledEvents = newGameEvents
+          pure $ State { stateGame = nextGameState
+                       , stateUnhandledEvents = nextGameEvents
                        }
 
-translateGameEvents :: Event -> IO [GameEvent]
-translateGameEvents EventQuit = exitSuccess
-translateGameEvents (EventMouseMotion dat) = pure $
-  let
-    SDL.P (SDL.V2 x y) = SDL.mouseMotionEventPos dat
-  in
-    [PlayerMoved (fromIntegral x, fromIntegral y)]
-translateGameEvents (EventKey dat) = pure $
-  case SDL.keysymKeycode (SDL.keyboardEventKeysym dat) of
-    SDL.KeycodeR -> [Restart]
-    _            -> []
-translateGameEvents _ = pure []
+loop :: State -> (State -> IO State) -> IO State
+loop s0 f = do
+    s1 <- f s0
+    loop s1 f

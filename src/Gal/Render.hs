@@ -6,7 +6,7 @@ import Control.Monad.IO.Class (MonadIO)
 import Gal.Window.SDL (WindowSDL, getSDLWindow)
 import Foreign.C (CInt)
 import Data.Foldable (forM_)
-import Gal.Game (Game (player, coins), Player, playerX, playerY, playerWidth, playerHeight, coinX, coinY, coinWidth, coinHeight)
+import Gal.Game.Types (Game (player, coins), Player, playerX, playerY, playerWidth, playerHeight, coinX, coinY, coinWidth, coinHeight)
 import Data.Functor ((<&>))
 import Gal.Texture (TextureAtlas, textureRaven, textureCoin)
 

@@ -52,6 +52,7 @@ library
                   , sdl2
                   , sdl2-image
                   , sdl2-ttf
+                  , time
                   , unliftio
                   , vector
                   , bytestring
@@ -93,6 +94,7 @@ executable gal
                     , vector
                     , bytestring
                     , mtl
+                    , time
                     -- , bearriver
                     , vector
                     , GLFW-b

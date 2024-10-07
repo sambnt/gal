@@ -1,6 +1,7 @@
 module Gal.Window.SDL ( withSDL
                       , withSDLWindow
                       , withWindowEvents
+                      , getSDLWindow
                       , WindowSDL
                       ) where
 
@@ -18,6 +19,9 @@ import Gal.Event (Event(..))
 data WindowSDL = WindowSDL { win :: SDL.Window
                            , eventQueue :: TQueue Event
                            }
+
+getSDLWindow :: WindowSDL -> SDL.Window
+getSDLWindow = win
 
 withSDL :: IO a -> IO a
 withSDL action =

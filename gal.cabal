@@ -63,6 +63,9 @@ library
   default-language: Haskell2010
   exposed-modules:  Gal.Event
                     Gal.Window.SDL
+                    Gal.Render
+                    Gal.Game
+                    Gal.Texture
 
 executable gal
     import:           project-config

@@ -13,28 +13,19 @@ import Numeric.Natural (Natural)
 import Gal.Window.SDL ( withSDL, withSDLWindow, withWindowEvents )
 import Gal.Event (Event(..))
 import System.Exit (exitSuccess)
-import Gal.Render (withRenderer)
+import Gal.Render (withRenderer, executeDrawCalls, generateDrawCalls)
+import Gal.Texture (loadTextureAtlas)
 import qualified SDL
 import qualified SDL.Raw as SDLRaw
 import qualified Control.Concurrent.STM as STM
 import Data.Ratio ((%))
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import Foreign.C (CInt)
+import Gal.Game (Game, initialGameState, GameEvent(PlayerMoved, CoinStolen, Restart))
+import qualified Gal.Game as Game
 
-data Player = Player { playerPosition :: SDL.V2 Rational
-                     , playerWidth    :: Natural
-                     , playerHeight   :: Natural
-                     }
-  deriving (Eq, Ord, Show)
-
-data Coin = Coin { coinPosition :: SDL.V2 CInt
-                 , coinWidth :: Natural
-                 , coinHeight :: Natural
-                 }
-  deriving (Eq, Ord, Show)
-
-data State = State { statePlayer :: Player
-                   , stateCoins :: [Coin]
+data State = State { stateGame :: Game
+                   , stateUnhandledEvents :: [GameEvent]
                    }
   deriving (Eq, Ord, Show)
 
@@ -43,27 +34,13 @@ main = do
   let
     initialWidth = 800
     initialHeight = 600
-    initialState = State { statePlayer = Player
-                             { playerPosition = SDL.V2 (fromIntegral initialWidth % 2)
-                                                       (fromIntegral initialHeight % 2)
-                             , playerWidth = 32
-                             , playerHeight = 32
-                             }
-                         , stateCoins = [ Coin { coinPosition = SDL.V2 100 200
-                                               , coinWidth = 32
-                                               , coinHeight = 32
-                                               }
-                                        ]
+    initialState = State { stateGame = initialGameState
+                         , stateUnhandledEvents = []
                          }
   withSDLWindow initialWidth initialHeight "gal" $ \win -> do
     SDLRaw.showCursor 0
     withRenderer win $ \ren -> do
-      -- Load image
-      let imageFileName = "./img/raven.bmp"
-      putStrLn ("Loading " ++ imageFileName)
-      bmp <- SDL.loadBMP imageFileName
-      -- Create a texture from the surface
-      tex <- SDL.createTextureFromSurface ren bmp
+      textureAtlas <- loadTextureAtlas ren
 
       time <- STM.newTVarIO =<< getCurrentTime
 
@@ -73,7 +50,6 @@ main = do
             s1 <- f s0
             loop s1 f
       void $ loop initialState $ \s -> do
-        start <- SDL.ticks
         withWindowEvents win $ \evs -> do
           when (not $ null evs) $
             print evs
@@ -83,55 +59,28 @@ main = do
             STM.writeTVar time t1
             pure $ realToFrac (diffUTCTime t1 t0)
 
-          s' <- foldM (processEvent dt) s evs
+          let oldGameEvents = stateUnhandledEvents s
+          newGameEvents <- mconcat <$> traverse translateGameEvents evs
+          let evs = newGameEvents <> oldGameEvents
+          let (newGameState, newGameEvents) =
+                Game.processEvents evs (stateGame s)
 
-          let player = statePlayer s
-          SDL.clear ren
-          let
-            width = playerWidth player
-            height = playerHeight player
-            point = SDL.P $ round <$> playerPosition player
-            size  = SDL.V2 (fromIntegral $ playerWidth player)
-                           (fromIntegral $ playerHeight player)
-            dest = SDL.Rectangle point size
+          let drawCalls = generateDrawCalls textureAtlas newGameState
+          executeDrawCalls ren drawCalls
 
-          SDL.copy ren tex Nothing (Just dest)
-          SDL.present ren
+          pure $ State { stateGame = newGameState
+                       , stateUnhandledEvents = newGameEvents
+                       }
 
-          -- frameTime <- ((-) start) <$> SDL.ticks
-          -- let fps = if frameTime > 0 then 1000.0 / fromIntegral frameTime else 0.0;
-          -- print fps
-          pure s'
-
-processEvent :: Float -> State -> Event -> IO State
-processEvent _ _ EventQuit = exitSuccess
-processEvent ds s (EventMouseMotion dat) =
+translateGameEvents :: Event -> IO [GameEvent]
+translateGameEvents EventQuit = exitSuccess
+translateGameEvents (EventMouseMotion dat) = pure $
   let
-    SDL.P pos = SDL.mouseMotionEventPos dat
+    SDL.P (SDL.V2 x y) = SDL.mouseMotionEventPos dat
   in
-    pure $
-    s { statePlayer = (statePlayer s)
-                        { playerPosition = fromIntegral <$> pos }
-      }
-processEvent dt s (EventKey dat) =
-  pure $ case SDL.keysymKeycode (SDL.keyboardEventKeysym dat) of
-    SDL.KeycodeUp ->
-      let
-        (SDL.V2 prevX prevY) = playerPosition $ statePlayer s
-        newPlayerPosition = SDL.V2 prevX (prevY - (100000.0 * realToFrac dt))
-      in
-        s { statePlayer = (statePlayer s)
-                          { playerPosition = newPlayerPosition
-                          }
-          }
-    SDL.KeycodeDown ->
-      let
-        (SDL.V2 prevX prevY) = playerPosition $ statePlayer s
-        newPlayerPosition = SDL.V2 prevX (prevY + (100000.0 * realToFrac dt))
-      in
-        s { statePlayer = (statePlayer s)
-                          { playerPosition = newPlayerPosition
-                          }
-          }
-    _ -> s
-processEvent _ s _ = pure s
+    [PlayerMoved (fromIntegral x, fromIntegral y)]
+translateGameEvents (EventKey dat) = pure $
+  case SDL.keysymKeycode (SDL.keyboardEventKeysym dat) of
+    SDL.KeycodeR -> [Restart]
+    _            -> []
+translateGameEvents _ = pure []

@@ -26,48 +26,34 @@ import Gal.Game.Types (Game, GameEvent(PlayerMoved, CoinStolen, Restart))
 import Gal.Time (mkTime, getDeltaTime)
 import Gal.Input (translateGameEvents)
 import qualified Gal.Game as Game
-
-data State = State { stateGame :: Game
-                   , stateUnhandledEvents :: [GameEvent]
-                   }
-  deriving (Eq, Ord, Show)
+import Gal.App (App)
+import qualified Gal.App as App
 
 main :: IO ()
 main = do
-  let
-    initialWidth = 800
-    initialHeight = 600
-    initialState = State { stateGame = initialGameState
-                         , stateUnhandledEvents = []
-                         }
+  let initialWidth = 800
+      initialHeight = 600
   withSDLWindow initialWidth initialHeight "gal" $ \win -> do
     SDLRaw.showCursor 0
     withRenderer win $ \ren -> do
       textureAtlas <- loadTextureAtlas ren
 
+      let app = App.init
+
       time <- mkTime
 
-      void $ loop initialState $ \s -> do
+      void $ loop app $ \s -> do
         withWindowEvents win $ \evs -> do
-
           dt <- getDeltaTime time
 
-          let mEvs = mconcat <$> traverse translateGameEvents evs
-          newGameEvents <- maybe exitSuccess pure mEvs
-          let
-            oldGameEvents = stateUnhandledEvents s
-            evsToProcess = newGameEvents <> oldGameEvents
-            (nextGameState, nextGameEvents) =
-              Game.processEvents evsToProcess (stateGame s)
+          s' <- maybe exitSuccess pure $ App.step dt evs s
 
-          let drawCalls = generateDrawCalls textureAtlas nextGameState
+          let drawCalls = generateDrawCalls textureAtlas (App.appGame s')
           executeDrawCalls ren drawCalls
 
-          pure $ State { stateGame = nextGameState
-                       , stateUnhandledEvents = nextGameEvents
-                       }
+          pure s'
 
-loop :: State -> (State -> IO State) -> IO State
+loop :: App -> (App -> IO App) -> IO App
 loop s0 f = do
-    s1 <- f s0
-    loop s1 f
+  s1 <- f s0
+  loop s1 f

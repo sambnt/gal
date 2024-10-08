@@ -69,6 +69,7 @@ library
                     Gal.Texture
                     Gal.Time
                     Gal.Input
+                    Gal.App
 
 executable gal
     import:           project-config

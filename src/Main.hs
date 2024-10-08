@@ -2,31 +2,15 @@
 
 module Main where
 
-import qualified Graphics.UI.GLFW as GLFW
-import Control.Monad (when, forM_, foldM, void)
-import Control.Concurrent (threadDelay)
-import Control.Exception.Safe (bracket)
-import qualified Data.Vector as Vector
-import qualified Data.ByteString.Char8 as BSC
-import Foreign.C (peekCString)
-import Numeric.Natural (Natural)
-import Gal.Window.SDL ( withSDL, withSDLWindow, withWindowEvents )
-import Gal.Event (Event(..))
+import Control.Monad (void)
 import System.Exit (exitSuccess)
+import qualified SDL.Raw as SDLRaw
+
+import Gal.App (App)
 import Gal.Render (withRenderer, executeDrawCalls, generateDrawCalls)
 import Gal.Texture (loadTextureAtlas)
-import qualified SDL
-import qualified SDL.Raw as SDLRaw
-import qualified Control.Concurrent.STM as STM
-import Data.Ratio ((%))
-import Data.Time.Clock (getCurrentTime, diffUTCTime)
-import Foreign.C (CInt)
-import Gal.Game (initialGameState)
-import Gal.Game.Types (Game, GameEvent(PlayerMoved, CoinStolen, Restart))
 import Gal.Time (mkTime, getDeltaTime)
-import Gal.Input (translateGameEvents)
-import qualified Gal.Game as Game
-import Gal.App (App)
+import Gal.Window.SDL ( withSDLWindow, withWindowEvents )
 import qualified Gal.App as App
 
 main :: IO ()
@@ -34,7 +18,7 @@ main = do
   let initialWidth = 800
       initialHeight = 600
   withSDLWindow initialWidth initialHeight "gal" $ \win -> do
-    SDLRaw.showCursor 0
+    _ <- SDLRaw.showCursor 0
     withRenderer win $ \ren -> do
       textureAtlas <- loadTextureAtlas ren
 

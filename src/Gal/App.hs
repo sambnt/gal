@@ -3,11 +3,8 @@ module Gal.App where
 import Gal.Game.Types (Game, GameEvent)
 import qualified Gal.Game as Game
 import Gal.Time (DeltaTimeSec)
-import Gal.Event (Event)
+import Gal.Window.Event (Event)
 import Gal.Input (translateGameEvents)
-
-import System.Exit (exitSuccess)
-import qualified Debug.Trace as Debug
 
 data App = App { appGame :: Game
                , appUnhandledEvents :: [GameEvent]

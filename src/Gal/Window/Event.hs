@@ -1,5 +1,5 @@
-module Gal.Event ( Event(..)
-                 ) where
+module Gal.Window.Event ( Event(..)
+                        ) where
 
 import qualified SDL
 

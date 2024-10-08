@@ -1,14 +1,15 @@
 module Gal.Render where
 
-import qualified SDL
 import Control.Exception.Safe (bracket, MonadMask)
 import Control.Monad.IO.Class (MonadIO)
-import Gal.Window.SDL (WindowSDL, getSDLWindow)
-import Foreign.C (CInt)
 import Data.Foldable (forM_)
-import Gal.Game.Types (Game (player, coins), Player, playerX, playerY, playerWidth, playerHeight, coinX, coinY, coinWidth, coinHeight)
 import Data.Functor ((<&>))
+import Foreign.C (CInt)
+import qualified SDL
+
+import Gal.Game.Types (Game (player, coins), playerX, playerY, playerWidth, playerHeight, coinX, coinY, coinWidth, coinHeight)
 import Gal.Texture (TextureAtlas, textureRaven, textureCoin)
+import Gal.Window.SDL (WindowSDL, getSDLWindow)
 
 withRenderer
   :: (MonadMask m,  MonadIO m)

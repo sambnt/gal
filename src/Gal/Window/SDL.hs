@@ -6,7 +6,6 @@ module Gal.Window.SDL ( withSDL
                       ) where
 
 import qualified SDL
-import qualified SDL.Font
 import Control.Concurrent.STM (TQueue)
 import Control.Exception.Safe (mask, onException, bracket)
 import Control.Monad (forM_)
@@ -14,7 +13,7 @@ import qualified Control.Concurrent.STM as STM
 import Numeric.Natural (Natural)
 import Data.Text (Text)
 
-import Gal.Event (Event(..))
+import Gal.Window.Event (Event(..))
 
 data WindowSDL = WindowSDL { win :: SDL.Window
                            , eventQueue :: TQueue Event

@@ -1,8 +1,9 @@
 module Gal.Input where
 
-import Gal.Event (Event (EventQuit, EventMouseMotion, EventKey))
-import Gal.Game.Types (GameEvent (Restart, PlayerMoved))
 import qualified SDL
+
+import Gal.Window.Event (Event (EventQuit, EventMouseMotion, EventKey))
+import Gal.Game.Types (GameEvent (Restart, PlayerMoved))
 
 translateGameEvents :: Event -> Maybe [GameEvent]
 translateGameEvents EventQuit = Nothing

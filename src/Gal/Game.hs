@@ -2,6 +2,7 @@ module Gal.Game where
 
 import Foreign.C (CInt)
 import Data.Function ((&))
+
 import Gal.Game.Types (GameEvent (PlayerMoved, CoinStolen, Restart), Game (Game), player, playerX, playerY, Coin (Coin), coins, Player (Player), playerWidth, coinX, coinY, playerHeight, coinWidth, coinHeight)
 
 processEvent :: GameEvent -> Game -> (Game, [GameEvent])
